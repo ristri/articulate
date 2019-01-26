@@ -9,6 +9,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+downloads/
+sound/
 develop-eggs/
 dist/
 downloads/
@@ -46,6 +48,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+.vscode/
 
 # Translations
 *.mo
@@ -102,3 +105,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+out.mp4
+demofile.ffconcat
+srtfile.srt
