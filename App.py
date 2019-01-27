@@ -8,9 +8,14 @@ from mutagen.mp3 import MP3
 import ffmpeg
 import pathlib
 import datetime
-from flask import Flask, request, jsonify, send_from_directory
+import time
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_restful import Resource, Api
 from flask_cors import CORS
+from io import BytesIO
+import shutil
+import multiprocessing
+from pathlib import Path
 
 res = google_images_download.googleimagesdownload() 
 
@@ -18,8 +23,11 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
+manager = multiprocessing.Manager()
+duration_list = manager.list()
+
 def get_audio(summaryList):
-    duration_list=[]
+    del duration_list[0:]
     if not os.path.exists('sound'):
         os.makedirs("sound")
     for i in range(len(summaryList)):
@@ -28,9 +36,9 @@ def get_audio(summaryList):
         tts.save("sound/"+"{0:0=2d}".format(i)+".mp3")
         audio = MP3("sound/"+"{0:0=2d}".format(i)+".mp3")
         duration_list.append(audio.info.length)
-    return (duration_list)
 
 def get_images(summaryList):
+    images_list = []
     for i in range(len(summaryList)):
         summaryList[i] = summaryList[i].replace(","," ")
         res.download({"keywords":summaryList[i],"limit":1,"no_directory":True,"prefix":"{0:0=2d}".format(i)})
@@ -42,8 +50,7 @@ def get_images(summaryList):
         fileFormat=pathlib.Path((os.path.join(path, file))).suffix
         os.rename(os.path.join(path, file),os.path.join(path,"image"+temp+fileFormat))
     images_list = [f for f in os.listdir(path)]
-    images_list.sort()
-    return(images_list)
+    return sorted(images_list)
 
 def generate_srt(duration_list,summaryList):
     date_time_str = '00:00:00.0000'
@@ -60,6 +67,10 @@ def generate_srt(duration_list,summaryList):
     return True
 
 def generate_video(img_list,audio_list):
+    print(audio_list)
+    path='/home/rishabh/Documents/articulate/'
+    if Path(path+'out.mp4').exists():
+        os.remove(path+'out.mp4')
     f = open("demofile.ffconcat","w+")
     f.write("ffconcat version 1.0")
     for i in range(len(audio_list)):
@@ -69,13 +80,25 @@ def generate_video(img_list,audio_list):
     os.system("mp3wrap sound/output.mp3 sound/*.mp3")
     os.system('ffmpeg -i  "/home/rishabh/Documents/articulate/demofile.ffconcat" -i sound/output_MP3WRAP.mp3 -c:a copy  -vcodec mpeg4 -y out.mp4')
     os.system("MP4Box -add srtfile.srt out.mp4")
+    if os.path.exists(path+'downloads'):
+        shutil.rmtree(path+'downloads')
+    if os.path.exists(path+'sound'):
+        shutil.rmtree(path+'sound')
+    demofile_path = Path(path+'demofile.ffconcat')
+    if demofile_path.exists():
+        os.remove(path+'demofile.ffconcat')
+    srt_path = Path(path+'srtfile.srt')
+    if srt_path.exists():
+        os.remove(path+'srtfile.srt')
     return True
 
 class ArticulateUrl(Resource):
     def post(self):
+
         json_data = request.get_json(force=True)
         url = json_data['url']
         response = requests.get(url)
+        print(response)
         result = ""
         paragraphs = justext.justext(response.content, justext.get_stoplist("English"))
         for paragraph in paragraphs:
@@ -83,25 +106,32 @@ class ArticulateUrl(Resource):
                 result= result+paragraph.text+'\n'
         summary = summarize(result,words=200)
         summaryList = summary.split("\n")
-        audio_list = get_audio(summaryList)
-        img_list = get_images(summaryList)
-        generate_srt(audio_list,summaryList)
-        generate_video(img_list,audio_list)
+        p1 = multiprocessing.Process(target = get_audio, args=(summaryList,))
+        p1.start()
+        images_list = get_images(summaryList)
+        p1.join()
+        print(duration_list)
+        generate_srt(duration_list,summaryList)
+        generate_video(images_list,duration_list)
         path='/home/rishabh/Documents/articulate'
         return send_from_directory(path,'out.mp4')
 
 class ArticulateContent(Resource):
     def post(self):
         json_data = request.get_json(force=True)
-        content = json_data['content']
-        summary = summarize(content,words=200)
-        summaryList = summary.split("\n")
-        audio_list = get_audio(summaryList)
-        img_list = get_images(summaryList)
-        generate_srt(audio_list,summaryList)
-        generate_video(img_list,audio_list)
-        path='/home/rishabh/Documents/articulate'
-        return send_from_directory(path,'out.mp4')
+        if(json_data['content']):
+            content = json_data['content']
+            summary = summarize(content,words=200)
+            summaryList = summary.split("\n")
+            p1 = multiprocessing.Process(target = get_audio, args=(summaryList,))
+            p1.start()
+            images_list = get_images(summaryList)
+            p1.join()
+            generate_srt(duration_list,summaryList)
+            generate_video(images_list,duration_list)
+            path='/home/rishabh/Documents/articulate'
+            return send_from_directory(path,'out.mp4')
+
 
 
         
