@@ -1,0 +1,10 @@
+Requirements for server:-
+1. flask, flask_restful
+2. justext
+3. summarize
+4. gtts
+5. google_images_download
+
+Requirements for webapp:-
+1. React CLI
+2. npm /  yarn
