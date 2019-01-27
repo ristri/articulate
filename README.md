@@ -3,13 +3,7 @@
 Coming up with a solution which reduces the boredom of reading and creating a newer way of consumption of textual knowledge. 
 ```
 ## Proposed Solution
-```Now what if that boring text can be converted into a captivating media.
-Extracting the text from academic and other articles.
-Summarising the whole text and coming up with important points with the help of Natural Language Processing.
-Converting those important points into a video using relevant images and audio clippings.
-The big boring text has been converted to an engaging video.
-
-```
+> Now what if that boring text can be converted into a captivating media.Extracting the text from academic and other articles.Summarising the whole text and coming up with important points with the help of Natural Language Processing.Converting those important points into a video using relevant images and audio clippings.The big boring text has been converted to an engaging video.
 ## Implementation
 * A react based front end which takes input in the form of URL of article.
 * Post that URL to API (flask framework) and then fetch text from that URL.
