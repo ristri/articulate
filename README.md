@@ -11,11 +11,11 @@ The big boring text has been converted to an engaging video.
 
 ```
 ## Implementation
- ```A react based front end which takes input in the form of URL of article.
-Post that URL to API (flask framework) and then fetch text from that URL.
-Summarizing that text using jusText library and other self implemented algorithms.
-Generating important points and finding relevant images to these points from web.
-Generating audio files from those points by using TEXT-TO-SPEECH by Google.
-Generating video from the images and integrating audio files according to the images. 
+ ```A * react based front end which takes input in the form of URL of article.
+* Post that URL to API (flask framework) and then fetch text from that URL.
+* Summarizing that text using jusText library and other self implemented algorithms.
+* Generating important points and finding relevant images to these points from web.
+* Generating audio files from those points by using TEXT-TO-SPEECH by Google.
+* Generating video from the images and integrating audio files according to the images. 
 
 ```
